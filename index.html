@@ -104,6 +104,12 @@ h1 em{font-style:italic;color:var(--rose);font-weight:600}
 .bud small{display:block;font:500 .85rem Jost,sans-serif;opacity:.85;margin-bottom:4px}
 @media (max-width:720px){.sc{gap:8px}.sc div{font-size:.78rem}.sc b{font-size:1.1rem}.bud button{font-size:1.1rem}}
 .pay{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 44px;padding:0;list-style:none}.pay li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:6px;font-weight:600}.pay span{font-size:1.7rem;line-height:1}
+.po .cp{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--soft);border-radius:8px;padding:10px 12px;color:var(--ink)}
+.cp small{display:block;color:var(--muted);font-size:.8rem}.cp b{font-weight:600;word-break:break-all}
+.po .cp button{flex:none;background:var(--btn);color:var(--btn-ink);border:0;border-radius:8px;padding:8px 12px;font-weight:600;width:auto}
+.mpb{display:block;text-align:center;background:#009EE3;color:#fff;border-radius:8px;padding:13px;font-weight:700;text-decoration:none}
+.mpw{display:block;text-align:center;border:1.5px solid var(--btn);color:var(--ink);border-radius:8px;padding:11px;font-weight:600;text-decoration:none}
+.pnote{font-size:.85rem;color:var(--muted);margin:0}
 </style></head><body>
 <header class="top"><div class="wrap">
 <a class="logo" href="#" style="color:inherit;text-decoration:none">MixGo <em>Bazar</em></a>
@@ -118,7 +124,7 @@ h1 em{font-style:italic;color:var(--rose);font-weight:600}
 </div>
 <div class="sc" id="sc"></div>
 </div></section>
-<div class="band"><div class="wrap"><span>Efectivo</span><span>Transferencia</span><span>Mercado Pago</span><span>Tarjetas de débito y crédito</span></div></div>
+<div class="band"><div class="wrap"><span>Transferencia</span><span>Mercado Pago</span><span>Tarjetas de débito y crédito</span></div></div>
 <main class="wrap">
 <h2 class="sec">Comprá por categoría</h2><p class="sub">Tocá la que te interese.</p>
 <div class="tiles" id="tiles"></div>
@@ -140,8 +146,8 @@ h1 em{font-style:italic;color:var(--rose);font-weight:600}
 </div></div>
 <div class="count" id="count" aria-live="polite"></div>
 <section class="grid" id="grid"></section>
-<h2 class="sec" id="pagos">Medios de pago</h2><p class="sub">Elegí el que te quede más cómodo. Coordinamos el pago por WhatsApp.</p>
-<ul class="pay"><li><span>💵</span>Efectivo</li><li><span>🏦</span>Transferencia bancaria</li><li><span>📲</span>Mercado Pago</li><li><span>💳</span>Tarjetas de débito y crédito</li></ul>
+<h2 class="sec" id="pagos">Medios de pago</h2><p class="sub">Elegí el que te quede más cómodo. Pagás online con Mercado Pago o coordinamos por WhatsApp.</p>
+<ul class="pay"><li><span>🏦</span>Transferencia bancaria</li><li><span>📲</span>Mercado Pago</li><li><span>💳</span>Tarjetas de débito y crédito</li></ul>
 </main>
 <footer><div class="wrap"><span class="logo">MixGo Bazar</span>
 Catálogo actualizado en noviembre de 2026. Precios en pesos argentinos, pueden cambiar sin aviso. Las fotos son de referencia. Aceptamos efectivo, transferencia bancaria, Mercado Pago y tarjetas de débito y crédito. Consultanos stock y envíos por WhatsApp.</div></footer>
@@ -163,15 +169,29 @@ function norm(t){return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function wl(t){return "https://wa.me/"+WA+"?text="+encodeURIComponent(t)}
 function img(p){return p.i?'<img src="'+p.i+'" alt="'+esc(p.n)+'">':EMO[p.k]}
-var PAYM=[["Mercado Pago","📲"],["Transferencia bancaria","🏦"],["Tarjeta de débito o crédito","💳"],["Efectivo","💵"]],payItems=[];
+var PAYM=[["Mercado Pago","📲"],["Transferencia bancaria","🏦"],["Tarjeta de débito o crédito","💳"]],payItems=[];
 function payBtn(attr){return '<button class="pagar" '+attr+'>Pagar ahora</button>'}
 function payOpen(items){payItems=items;var tot=0,pend=0;items.forEach(function(x){var p=P[x.id];if(p.p==null)pend++;else tot+=p.p*x.n});
 var h='<button class="x" data-c="pay" aria-label="Cerrar">×</button><div class="bd" style="padding:22px 22px 12px"><h3 style="font-size:1.6rem">¿Cómo querés pagar?</h3><p class="ds" style="flex:0">'+items.map(function(x){return x.n+' × '+esc(P[x.id].n)}).join(", ")+'</p><div class="pr">'+(pend?"<small>Consultar precio</small>":money(tot))+'</div></div><div class="po">'+PAYM.map(function(m,i){return '<button data-pm="'+i+'">'+m[1]+' '+m[0]+'</button>'}).join("")+'</div>';
 $("pay").innerHTML=h;$("pay").showModal()}
+function goTo(u){var a=document.createElement("a");a.href=u;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
+var MPL={};/* Links de Mercado Pago por producto: {"codigo o nombre":"https://mpago.la/xxxx"} */
+var MPCART=""; /* Link opcional para pedidos de varios productos */
+function mpLink(p){return p.mp||MPL[p.c]||MPL[p.n]||""}
+var MP={alias:"mixgocobros",cvu:"0000003100099719792658",name:"Milagros del Mar Ocampo",link:"https://mpago.la/29YZhma"};
+function cpRow(t,shown,val){return '<div class="cp"><div><small>'+t+'</small><b>'+esc(shown)+'</b></div><button data-cp="'+esc(val)+'">Copiar</button></div>'}
+function payShow(i,tot,l){var mp=i==0;
+var wm="Hola! Ya hice el pago de "+money(tot)+" por "+PAYM[i][0]+":\n"+l+"\nTe paso el comprobante.";
+$("pay").innerHTML='<button class="x" data-c="pay" aria-label="Cerrar">×</button><div class="bd" style="padding:22px 22px 6px"><h3 style="font-size:1.6rem">'+(mp?"Pagá con Mercado Pago":"Pagá por transferencia")+'</h3><p class="ds" style="flex:0">'+(mp?"Tocá el botón, elegí transferir e ingresá este monto:":"Transferí este monto desde tu banco o billetera:")+'</p><div class="pr">'+money(tot)+'</div></div><div class="po">'+cpRow("Monto a pagar",money(tot),String(tot))+cpRow("Alias",MP.alias,MP.alias)+cpRow("CVU",MP.cvu,MP.cvu)+cpRow("Titular",MP.name,MP.name)+(mp?'<a class="mpb" target="_blank" rel="noopener" href="'+MP.link+'">Ir a mi Mercado Pago</a>':"")+'<a class="mpw" target="_blank" rel="noopener" href="'+wl(wm)+'">Ya pagué · enviar comprobante por WhatsApp</a><p class="pnote">Cuando pagues, mandanos el comprobante así confirmamos tu pedido.</p></div>'}
 function payGo(i){var m=PAYM[i][0],tot=0,pend=0;var l=payItems.map(function(x){var p=P[x.id];if(p.p==null)pend++;else tot+=p.p*x.n;return "• "+x.n+" × "+p.n+(p.c?" ("+p.c+")":"")+(p.p==null?" – consultar precio":" – "+money(p.p*x.n))}).join("\n");
 var one=payItems.length==1?P[payItems[0].id]:null;
-if(i==0&&one&&one.mp){window.open(one.mp,"_blank","noopener");return}
-window.open(wl("Hola! Quiero comprar y pagar con "+m+":\n"+l+"\nTotal: "+money(tot)+(pend?" (más los productos a consultar)":"")+"\n¿Me pasás los datos para pagar?"),"_blank","noopener")}
+var link=(one&&payItems[0].n==1)?mpLink(one):"";
+if(i==0&&link){goTo(link);return}
+if(i<2&&!pend){payShow(i,tot,l);return}
+goTo(wl("Hola! Quiero comprar y pagar con "+m+":\n"+l+"\nTotal: "+money(tot)+(pend?" (más los productos a consultar)":"")+"\n¿Me pasás el link de pago?"))}
+function cpy(b){var v=b.dataset.cp,ok=function(){var t=b.textContent;b.textContent="¡Copiado!";setTimeout(function(){b.textContent="Copiar"},1500)};
+try{navigator.clipboard.writeText(v).then(ok,fb)}catch(e){fb()}
+function fb(){var t=document.createElement("textarea");t.value=v;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok()}catch(e){}t.remove()}}
 function save(){sv("mg_f",favs);sv("mg_c",cart)}
 function ctrl(p){var n=cart[p.id]||0;return n?'<div class="qt"><button data-m="'+p.id+'" aria-label="Quitar uno">−</button><span>'+n+' en tu pedido</span><button data-a="'+p.id+'" aria-label="Sumar uno">+</button></div>':'<button class="add" data-a="'+p.id+'">Agregar al pedido</button>'}
 function price(p){return p.p==null?"<small>Consultar precio</small>":(p.o?'<span class="old">'+money(p.o)+'</span>':"")+money(p.p)}
@@ -196,9 +216,10 @@ if(ks.length){var msg="Hola! Quiero hacer este pedido:\n"+ks.map(function(k){var
 h+='<div class="tot"><span>Total estimado</span><span>'+money(tot)+'</span></div>'+payBtn('data-pc="1"').replace('Pagar ahora','Pagar pedido')+'<a class="wa" style="margin-top:8px" target="_blank" rel="noopener" href="'+wl(msg)+'">Enviar pedido por WhatsApp</a><button class="chip" style="margin-top:10px;width:100%" data-clr="1">Vaciar pedido</button>'}
 h+='<button class="chip" style="margin-top:10px;width:100%" data-c="cart">Seguir mirando</button></div>';$("cart").innerHTML=h}
 function bump(id,d){var n=(cart[id]||0)+d;if(n<=0)delete cart[id];else cart[id]=n;save();draw();if($("cart").open)cartView();if($("m").open)open(id)}
-document.addEventListener("click",function(e){var b=e.target.closest("[data-a],[data-m],[data-o],[data-f],[data-k],[data-c],[data-clr],[data-b],[data-p],[data-pc],[data-pm]");
+document.addEventListener("click",function(e){var b=e.target.closest("[data-a],[data-m],[data-o],[data-f],[data-k],[data-c],[data-clr],[data-b],[data-p],[data-pc],[data-pm],[data-cp]");
 if(!b){if(e.target.tagName=="DIALOG")e.target.close();return}
 var d=b.dataset;
+if(d.cp!=null){cpy(b);return}
 if(d.p!=null)payOpen([{id:+d.p,n:cart[+d.p]||1}]);else if(d.pc)payOpen(Object.keys(cart).map(function(k){return{id:+k,n:cart[k]}}));else if(d.pm!=null)payGo(+d.pm);else if(d.a!=null)bump(+d.a,1);else if(d.m!=null)bump(+d.m,-1);
 else if(d.o!=null)open(+d.o);
 else if(d.f!=null){var i=+d.f,x=favs.indexOf(i);x>-1?favs.splice(x,1):favs.push(i);save();draw()}
